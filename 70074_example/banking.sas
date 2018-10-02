@@ -1,0 +1,42 @@
+*Program to create Banking data set;
+data Banking;
+   length Account $ 6;
+   call streaminit(987654321);
+   Do i = 1 to 100;
+      Account = cats(put(ceil(rand('uniform')*1000000),z6.));
+      if rand('uniform') lt .4 then Gender = 'F';
+      else Gender = 'M';
+      do Date = ceil(rand('uniform')*400 + 20000);
+         Mean_Deposit = rand('uniform')*10000;
+         Mean_Deposit = rand('normal',Mean_deposit,.1*Mean_Deposit);
+         Mean_Withdrawl = rand('uniform') + .01*Mean_Deposit;
+         do Transaction = 1 to ceil(rand('uniform')*10);
+            if rand('uniform') lt .8 then Deposit = rand('normal',Mean_Deposit,.1*Mean_Deposit);
+            else Withdrawl = rand('normal',Mean_Deposit,.05*Mean_Deposit);
+*Introduce errors;
+            if rand('uniform') lt .05 then do;
+               if mod(Transaction,2) then Deposit = 10*Deposit;
+               else Deposit = .1*Deposit;
+            end;
+
+            if rand('uniform') lt .05 then do;
+               if mod(Transaction,2) then Withdrawl = 10*Withdrawl;
+               else Withdrawl = .1*Withdrawl;
+            end;
+putlog _all_;
+            output;
+         end;
+      end;
+   end;
+   format Date date9. Deposit Withdrawl dollar10.;
+   drop Mean: i Transaction;
+run;
+
+proc sort data=Banking;
+   by Date Account;
+run;
+
+proc print data=Banking(obs=50);
+   id Account;
+   var Date Deposit Withdrawl Gender;
+run;
